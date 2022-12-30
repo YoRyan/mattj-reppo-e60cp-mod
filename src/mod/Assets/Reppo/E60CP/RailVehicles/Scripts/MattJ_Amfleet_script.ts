@@ -34,24 +34,23 @@ const me = new FrpEngine(() => {
     } else {
         phase = Phase.III;
     }
-    const fullNumber = me.rv.GetRVNumber();
-    const carNumber = string.sub(fullNumber, 1, 5);
-    const flags = {
-        l: readRvFlag(fullNumber, "L"),
-        w: readRvFlag(fullNumber, "W"),
-        s: readRvFlag(fullNumber, "S"),
-        t: readRvFlag(fullNumber, "T"),
-    };
 
     // decal selection
     const decals = new rw.RenderedEntity("NewDecals");
     const objects = new rw.RenderedEntity("NewObjects");
     const wifi = new rw.RenderedEntity("NewWiFi");
-    const setNodes$ = frp.compose(
+    const rvNumber$ = frp.compose(
         me.createUpdateStream(),
-        once() // Only fire at startup. Critical for performance.
+        frp.map(_ => me.rv.GetRVNumber()),
+        rejectRepeats()
     );
-    setNodes$(_ => {
+    rvNumber$(fullNumber => {
+        const carNumber = string.sub(fullNumber, 1, 5);
+        const l = readRvFlag(fullNumber, "L");
+        const w = readRvFlag(fullNumber, "W");
+        const s = readRvFlag(fullNumber, "S");
+        const t = readRvFlag(fullNumber, "T");
+
         decals.SetText(carNumber, rw.TextSet.Primary);
         me.rv.ActivateNode("ext_decals", false);
 
@@ -60,32 +59,32 @@ const me = new FrpEngine(() => {
         }
         if (phase === Phase.IV || phase === Phase.V) {
             // ADA accessibility stickers toggle
-            decals.ActivateNode("wheelchair", flags.s === 1);
+            decals.ActivateNode("wheelchair", s === 1);
         }
         if (phase === Phase.IV) {
             // visibility of various Amtrak logos (e.g. Northeast Direct, Amtrak, none)
-            decals.ActivateNode("amtrak", flags.l === 1);
-            decals.ActivateNode("nedirect", flags.l === 2);
+            decals.ActivateNode("amtrak", l === 1);
+            decals.ActivateNode("nedirect", l === 2);
         }
         if (phase === Phase.IVb) {
             // cafe car "Regional" logo toggle
-            decals.ActivateNode("regional", flags.l === 1);
+            decals.ActivateNode("regional", l === 1);
             // bike car sticker toggle
-            decals.ActivateNode("bike", flags.s === 1 && flags.w !== 0);
+            decals.ActivateNode("bike", s === 1 && w !== 0);
             // displays the bike car decal in a different location if the WiFi equipment is disabled but bike sticker is enabled
-            decals.ActivateNode("bikealt", flags.s === 1 && flags.w === 0);
+            decals.ActivateNode("bikealt", s === 1 && w === 0);
 
             // WiFi equipment toggle
-            decals.ActivateNode("wifisticker", flags.w === 1);
+            decals.ActivateNode("wifisticker", w === 1);
             for (const node of ["wifi", "wifibar", "wifibrackets", "wificables"]) {
-                wifi.ActivateNode(node, flags.w === 1);
+                wifi.ActivateNode(node, w === 1);
             }
         }
 
         // service type placards
-        objects.ActivateNode("placard1", flags.t === 1);
-        objects.ActivateNode("placard2", flags.t === 2);
-        objects.ActivateNode("placard3", flags.t === 3);
+        objects.ActivateNode("placard1", t === 1);
+        objects.ActivateNode("placard2", t === 2);
+        objects.ActivateNode("placard3", t === 3);
     });
 
     // brake status lights
