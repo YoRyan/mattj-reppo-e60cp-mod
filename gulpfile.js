@@ -83,6 +83,11 @@ async function transpileTypeScriptToLua(tempDir, luaPath) {
         luaBundle: path.join(path.dirname(luaPath), path.basename(luaPath, ".ts") + ".lua"),
         // The entry path needs to be absolute so that TSTL sets the correct module name.
         luaBundleEntry: path.join(tempDir, luaPath),
+        // Stop TSTL from rewriting our weird include paths.
+        noResolvePaths: [
+            "Assets/Reppo/E60CP/RailVehicles/Scripts/Amfleet_script.out",
+            "Assets/Reppo/E60CP/RailVehicles/Scripts/E60_EngineScript.out",
+        ],
     });
     printDiagnostics(result.diagnostics);
 }
