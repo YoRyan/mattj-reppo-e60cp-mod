@@ -53,8 +53,8 @@ export async function typescript() {
             )
             // Need to pipe through cat because node pipes can't be referenced with
             // named file descriptors; see https://stackoverflow.com/a/72906798
-            .pipe(stream(({ path }) => `luac -o /dev/stdout ${escapeShellArg(path)} | cat`, { shell: true }))
-            .pipe(rename(path => (path.extname = ".out")))
+            //.pipe(stream(({ path }) => `luac -o /dev/stdout ${escapeShellArg(path)} | cat`, { shell: true }))
+            //.pipe(rename(path => (path.extname = ".out")))
             .pipe(rename(path => (path.dirname = path.dirname.replace(/^mod\//, ""))))
             .pipe(dest("dist"))
     );
