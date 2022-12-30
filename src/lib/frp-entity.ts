@@ -60,16 +60,33 @@ export class FrpEntity {
      * Set the global callback functions to execute this entity.
      */
     setup() {
-        Initialise = this.onInit;
-        Update = dt => {
+        Initialise = this.chain(Initialise, this.onInit);
+        Update = this.chain(Update, dt => {
             this.updateSource.call(dt);
             if (!this.updatingEveryFrame) {
                 // EndUpdate() must be called from the Update() callback.
                 this.e.EndUpdate();
             }
+        });
+        OnSave = this.chain(OnSave, () => this.saveSource.call());
+        OnResume = this.chain(OnResume, () => this.resumeSource.call());
+    }
+
+    /**
+     * Append new code to a global callback that may or may not already exist.
+     * This is a common modding technique for grafting behavior onto other Lua
+     * scripts.
+     * @param old The existing callback, if any.
+     * @param ours The callback we want to call after the existing one.
+     * @returns A new callback that combines both.
+     */
+    protected chain<T extends any[]>(old: (...args: T) => void | undefined, ours: (...args: T) => void) {
+        return (...args: T) => {
+            if (old !== undefined) {
+                old(...args);
+            }
+            ours(...args);
         };
-        OnSave = () => this.saveSource.call();
-        OnResume = () => this.resumeSource.call();
     }
 
     /**
