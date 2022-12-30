@@ -52,11 +52,7 @@ const me = new FrpEngine(() => {
         const t = readRvFlag(fullNumber, "T");
 
         decals.SetText(carNumber, rw.TextSet.Primary);
-        me.rv.ActivateNode("ext_decals", false);
 
-        if (phase === Phase.IVb || phase === Phase.V) {
-            me.rv.ActivateNode("primarydigits_5", false);
-        }
         if (phase === Phase.IV || phase === Phase.V) {
             // ADA accessibility stickers toggle
             decals.ActivateNode("wheelchair", s === 1);
@@ -85,6 +81,14 @@ const me = new FrpEngine(() => {
         objects.ActivateNode("placard1", t === 1);
         objects.ActivateNode("placard2", t === 2);
         objects.ActivateNode("placard3", t === 3);
+    });
+    const atLoad$ = frp.compose(me.createUpdateStream(), once());
+    atLoad$(_ => {
+        me.rv.ActivateNode("ext_decals", false);
+
+        if (phase === Phase.IVb || phase === Phase.V) {
+            me.rv.ActivateNode("primarydigits_5", false);
+        }
     });
 
     // brake status lights
