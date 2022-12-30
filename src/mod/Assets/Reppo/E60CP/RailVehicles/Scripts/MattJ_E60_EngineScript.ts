@@ -18,6 +18,13 @@ enum PulseCode {
     C_420_0,
 }
 
+enum Aspect {
+    Restricting = "M14",
+    Approach = "M12",
+    ApproachLimited = "M11",
+    Clear = "M10",
+}
+
 /**
  * Attempt to convert a signal message to a pulse code.
  * @param signalMessage The custom signal message.
@@ -92,17 +99,16 @@ OnCustomSignalMessage = msg => {
     const pulseCode = toPulseCode(msg);
     if (pulseCode !== undefined) {
         const emulatedMsg = {
-            [PulseCode.C_0_0]: "M15",
-            [PulseCode.C_75_0]: "M12",
-            [PulseCode.C_75_75]: "M12",
-            [PulseCode.C_120_0]: "M11",
-            [PulseCode.C_120_120]: "M11",
-            [PulseCode.C_180_0]: "M10",
-            [PulseCode.C_180_180]: "M10",
-            // Prototypically, an E60 cannot understand the following codes and would interpret them as Restricting.
-            [PulseCode.C_270_0]: "M15",
-            [PulseCode.C_270_270]: "M15",
-            [PulseCode.C_420_0]: "M15",
+            [PulseCode.C_0_0]: Aspect.Restricting,
+            [PulseCode.C_75_0]: Aspect.Approach,
+            [PulseCode.C_75_75]: Aspect.Approach,
+            [PulseCode.C_120_0]: Aspect.ApproachLimited,
+            [PulseCode.C_120_120]: Aspect.ApproachLimited,
+            [PulseCode.C_180_0]: Aspect.Clear,
+            [PulseCode.C_180_180]: Aspect.Clear,
+            [PulseCode.C_270_0]: Aspect.ApproachLimited,
+            [PulseCode.C_270_270]: Aspect.Clear,
+            [PulseCode.C_420_0]: Aspect.ApproachLimited,
         }[pulseCode];
         oldOnSignalMessage(emulatedMsg);
     }
