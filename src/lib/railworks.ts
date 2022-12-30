@@ -21,6 +21,11 @@ export enum CameraEnterView {
 
 export type AllNodes = "all";
 
+export enum TextSet {
+    Primary = 0,
+    Secondary = 1,
+}
+
 /**
  * A direction used by rail vehicles to send consist messages and search for
  * track features.
@@ -285,6 +290,13 @@ export class RenderedEntity extends ScriptedEntity {
      */
     setNearPosition(x: number, y: number, z: number) {
         Call(this.fn("setNearPosition"), x, y, z);
+    }
+
+    /**
+     * Method to set the entity text to a given value.
+     */
+    SetText(text: string, set: TextSet) {
+        Call(this.fn("SetText"), text, set);
     }
 }
 
