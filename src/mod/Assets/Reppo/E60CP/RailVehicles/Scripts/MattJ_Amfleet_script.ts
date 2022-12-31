@@ -58,6 +58,8 @@ const me = new FrpEngine(() => {
             decals.ActivateNode("wheelchair", s === 1);
         }
         if (phase === Phase.IV) {
+            me.rv.SetText(carNumber, rw.TextSet.Primary);
+
             // visibility of various Amtrak logos (e.g. Northeast Direct, Amtrak, none)
             decals.ActivateNode("amtrak", l === 1);
             decals.ActivateNode("nedirect", l === 2);
