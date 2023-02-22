@@ -22,7 +22,6 @@ export class FrpEntity {
     private readonly resumeSource = new FrpSource<void>();
 
     private readonly onInit: (this: void) => void;
-    private updatingEveryFrame = false;
 
     /**
      * Construct a new entity.
@@ -61,13 +60,7 @@ export class FrpEntity {
      */
     setup() {
         Initialise = this.chain(Initialise, this.onInit);
-        Update = this.chain(Update, dt => {
-            this.updateSource.call(dt);
-            if (!this.updatingEveryFrame) {
-                // EndUpdate() must be called from the Update() callback.
-                this.e.EndUpdate();
-            }
-        });
+        Update = this.chain(Update, dt => this.updateSource.call(dt));
         OnSave = this.chain(OnSave, () => this.saveSource.call());
         OnResume = this.chain(OnResume, () => this.resumeSource.call());
     }
@@ -87,18 +80,6 @@ export class FrpEntity {
             }
             ours(...args);
         };
-    }
-
-    /**
-     * Set the update loop to update every frame, or only upon the execution of
-     * any callback.
-     * @param everyFrame Whether to update every frame.
-     */
-    activateUpdatesEveryFrame(everyFrame: boolean) {
-        if (!this.updatingEveryFrame && everyFrame) {
-            this.e.BeginUpdate();
-        }
-        this.updatingEveryFrame = everyFrame;
     }
 }
 

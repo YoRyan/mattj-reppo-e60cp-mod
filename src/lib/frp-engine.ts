@@ -3,7 +3,7 @@
 import * as frp from "./frp";
 import { FrpSource } from "./frp-entity";
 import { rejectUndefined } from "./frp-extra";
-import { FrpVehicle, PlayerUpdate, VehicleCamera } from "./frp-vehicle";
+import { FrpVehicle, VehicleCamera, VehicleUpdate } from "./frp-vehicle";
 import * as rw from "./railworks";
 
 /**
@@ -30,8 +30,8 @@ export class FrpEngine extends FrpVehicle {
      */
     public readonly eng = new rw.Engine("");
 
-    private readonly playerWithKeyUpdateSource = new FrpSource<PlayerUpdate>();
-    private readonly playerWithoutKeyUpdateSource = new FrpSource<PlayerUpdate>();
+    private readonly playerWithKeyUpdateSource = new FrpSource<VehicleUpdate>();
+    private readonly playerWithoutKeyUpdateSource = new FrpSource<VehicleUpdate>();
     private readonly signalMessageSource = new FrpSource<string>();
 
     constructor(onInit: () => void) {
