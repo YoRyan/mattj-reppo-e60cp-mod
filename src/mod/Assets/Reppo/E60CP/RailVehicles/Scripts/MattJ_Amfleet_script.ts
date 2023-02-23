@@ -294,7 +294,8 @@ function createAnimateDoorStream(
     areDoorsOpen: (update: VehicleUpdate) => boolean,
     areTrapdoorsDown: frp.Behavior<boolean>
 ) {
-    type CommandAccum = DoorCommand.Open | [c: DoorCommand.StartClose, timerS: number] | DoorCommand.Close;
+    type StartClose = [c: DoorCommand.StartClose, timerS: number];
+    type CommandAccum = DoorCommand.Open | StartClose | DoorCommand.Close;
 
     const currentCommand = frp.stepper(
         frp.compose(
@@ -304,14 +305,14 @@ function createAnimateDoorStream(
                 if (open) {
                     return DoorCommand.Open;
                 } else if (accum === DoorCommand.Open) {
-                    return [DoorCommand.StartClose, doorStartCloseS] as [DoorCommand.StartClose, number];
+                    return [DoorCommand.StartClose, doorStartCloseS] as StartClose;
                 } else if (accum === DoorCommand.Close) {
                     return DoorCommand.Close;
                 } else {
                     const [, timerS] = accum;
                     return timerS <= vu.dt
                         ? DoorCommand.Close
-                        : ([DoorCommand.StartClose, timerS - vu.dt] as [DoorCommand.StartClose, number]);
+                        : ([DoorCommand.StartClose, timerS - vu.dt] as StartClose);
                 }
             }, DoorCommand.Close)
         ),
