@@ -2,7 +2,7 @@
 
 import * as frp from "lib/frp";
 import { FrpEngine } from "lib/frp-engine";
-import { rejectUndefined } from "lib/frp-extra";
+import { mapBehavior, rejectRepeats, rejectUndefined } from "lib/frp-extra";
 import * as rw from "lib/railworks";
 
 /**
@@ -29,6 +29,7 @@ enum Aspect {
 }
 
 const brakeMessageId = 10101;
+const lowPlatformMessageId = 10146;
 
 // Load and executes the old code. Requires the .out file to be extracted from
 // the asset pack!
@@ -74,6 +75,19 @@ const me = new FrpEngine(() => {
     sendBrakeMessage$(msg => {
         me.rv.SendConsistMessage(brakeMessageId, msg, rw.ConsistDirection.Forward);
         me.rv.SendConsistMessage(brakeMessageId, msg, rw.ConsistDirection.Backward);
+    });
+
+    // Consist message for low-platform trapdoors
+    const isLowPlatform = () => (me.rv.GetControlValue("VirtualBrake", 0) as number) > 0.5;
+    const sendLowPlatformMessage$ = frp.compose(
+        me.createPlayerWithKeyUpdateStream(),
+        mapBehavior(isLowPlatform),
+        rejectRepeats(),
+        frp.map(isLow => (isLow ? "1" : "0"))
+    );
+    sendLowPlatformMessage$(msg => {
+        me.rv.SendConsistMessage(lowPlatformMessageId, msg, rw.ConsistDirection.Forward);
+        me.rv.SendConsistMessage(lowPlatformMessageId, msg, rw.ConsistDirection.Backward);
     });
 });
 me.setup();
