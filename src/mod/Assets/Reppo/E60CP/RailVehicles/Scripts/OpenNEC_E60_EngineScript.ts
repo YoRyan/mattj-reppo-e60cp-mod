@@ -78,14 +78,16 @@ const me = new FrpEngine(() => {
     });
 
     // Consist message for low-platform trapdoors
-    const isLowPlatform = () => (me.rv.GetControlValue("VirtualBrake", 0) as number) > 0.5;
-    const sendLowPlatformMessage$ = frp.compose(
+    const isLowPlatform = () => (me.rv.GetControlValue("AmfleetDoorLevel", 0) as number) > 0.5;
+    const lowPlatformChange$ = frp.compose(
         me.createPlayerWithKeyUpdateStream(),
         mapBehavior(isLowPlatform),
-        rejectRepeats(),
-        frp.map(isLow => (isLow ? "1" : "0"))
+        rejectRepeats()
     );
-    sendLowPlatformMessage$(msg => {
+    lowPlatformChange$(isLow => {
+        rw.ScenarioManager.ShowMessage("Door Platform Height", isLow ? "Low-Floor" : "High-Floor", rw.MessageBox.Alert);
+
+        const msg = isLow ? "1" : "0";
         me.rv.SendConsistMessage(lowPlatformMessageId, msg, rw.ConsistDirection.Forward);
         me.rv.SendConsistMessage(lowPlatformMessageId, msg, rw.ConsistDirection.Backward);
     });
