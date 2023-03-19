@@ -1,5 +1,3 @@
-/** @noSelfInFile */
-
 import * as frp from "./frp";
 import { FrpSource } from "./frp-entity";
 import { rejectUndefined } from "./frp-extra";

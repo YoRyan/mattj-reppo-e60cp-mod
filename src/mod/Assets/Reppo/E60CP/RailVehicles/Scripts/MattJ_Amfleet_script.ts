@@ -1,5 +1,3 @@
-/** @noSelfInFile */
-
 import * as c from "lib/constants";
 import * as frp from "lib/frp";
 import { mapBehavior, mergeBeforeStart, once, rejectRepeats } from "lib/frp-extra";

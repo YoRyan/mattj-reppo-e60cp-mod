@@ -1,5 +1,3 @@
-/** @noSelfInFile */
-
 import * as frp from "lib/frp";
 import { FrpEngine } from "lib/frp-engine";
 import { mapBehavior, rejectRepeats, rejectUndefined } from "lib/frp-extra";
