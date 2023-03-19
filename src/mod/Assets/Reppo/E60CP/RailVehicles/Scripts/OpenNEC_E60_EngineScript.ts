@@ -28,8 +28,15 @@ enum Aspect {
     Clear = "M10",
 }
 
+enum PlatformHeight {
+    Low,
+    HighNoAlarm,
+    HighWithAlarm,
+}
+
 const brakeMessageId = 10101;
 const lowPlatformMessageId = 10146;
+const lowPlatformRepeatS = 5;
 
 // Load and executes the old code. Requires the .out file to be extracted from
 // the asset pack!
@@ -77,16 +84,35 @@ const me = new FrpEngine(() => {
         me.rv.SendConsistMessage(brakeMessageId, msg, rw.ConsistDirection.Backward);
     });
 
-    // Consist message for low-platform trapdoors
-    const isLowPlatform = () => (me.rv.GetControlValue("AmfleetDoorLevel", 0) as number) > 0.5;
-    const lowPlatformChange$ = frp.compose(
-        me.createPlayerWithKeyUpdateStream(),
-        mapBehavior(isLowPlatform),
+    // Low-platform trapdoor toggle
+    const platformHeightChange$ = frp.compose(
+        me.createOnCvChangeStreamFor("AmfleetDoorLevel", 0),
+        frp.map(toPlatformHeight),
         rejectRepeats()
     );
-    lowPlatformChange$(isLow => {
-        rw.ScenarioManager.ShowMessage("Door Platform Height", isLow ? "Low-Floor" : "High-Floor", rw.MessageBox.Alert);
+    const platformHeightUpdate$ = frp.compose(
+        me.createPlayerWithKeyUpdateStream(),
+        frp.throttle(lowPlatformRepeatS * 1000),
+        me.mapGetCvStream("AmfleetDoorLevel", 0),
+        rejectUndefined(),
+        frp.map(toPlatformHeight)
+    );
+    platformHeightChange$(height => {
+        const status = {
+            [PlatformHeight.Low]: "Low-Floor",
+            [PlatformHeight.HighNoAlarm]: "High-Floor Manual",
+            [PlatformHeight.HighWithAlarm]: "High-Floor Auto",
+        }[height];
+        rw.ScenarioManager.ShowMessage("Door Platform Height", status, rw.MessageBox.Alert);
+    });
 
+    // Consist message for low-platform trapdoors
+    const sendLowPlatformMessage$ = frp.compose(
+        platformHeightChange$,
+        frp.merge(platformHeightUpdate$),
+        frp.map(height => height === PlatformHeight.Low)
+    );
+    sendLowPlatformMessage$(isLow => {
         const msg = isLow ? "1" : "0";
         me.rv.SendConsistMessage(lowPlatformMessageId, msg, rw.ConsistDirection.Forward);
         me.rv.SendConsistMessage(lowPlatformMessageId, msg, rw.ConsistDirection.Backward);
@@ -161,4 +187,17 @@ function toPulseCode(signalMessage: string) {
     }
 
     return undefined;
+}
+
+/**
+ * Read a platform height enum from the control value.
+ */
+function toPlatformHeight(v: number) {
+    if (v > 1.5) {
+        return PlatformHeight.HighWithAlarm;
+    } else if (v > 0.5) {
+        return PlatformHeight.HighNoAlarm;
+    } else {
+        return PlatformHeight.Low;
+    }
 }
